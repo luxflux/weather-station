@@ -1,6 +1,7 @@
 import math
+import statistics
+import time
 from gpiozero import Button
-from time import sleep
 
 ONE_KM_IN_CM = 1.0 * 100 * 1000
 ONE_HOUR_IN_SECS = 1.0 * 60 * 60
@@ -10,9 +11,15 @@ CIRCUMFERENCE_CM = (2 * math.pi) * RADIUS_CM
 MEASURE_INTERVAL = 5
 ADJUSTMENT = 1.18
 
+store_speeds = []
+
 def spin():
     global wind_count
     wind_count = wind_count + 1
+
+def reset_wind():
+    global wind_count
+    wind_count = 0
 
 def calculate_speed(time_sec):
     global wind_count
@@ -32,8 +39,14 @@ wind_speed_sensor = Button(5)
 wind_speed_sensor.when_pressed = spin
 
 while True:
-    wind_count = 0
-    sleep(MEASURE_INTERVAL)
-    km_per_hour = calculate_speed(MEASURE_INTERVAL)
+    start_time = time.time()
+    while time.time() - start_time <= MEASURE_INTERVAL:
+        reset_wind()
+        time.sleep(MEASURE_INTERVAL)
+        final_speed = calculate_speed(MEASURE_INTERVAL)
+        store_speeds.append(final_speed)
 
-    print(format(km_per_hour, 'f'), "km/h")
+    wind_gust = max(store_speeds)
+    wind_speed = statistics.mean(store_speeds)
+    print("Speed: ", wind_speed, "km/h")
+    print("Gust: ", wind_gust, "km/h")
