@@ -3,7 +3,7 @@ import smbus2
 from time import sleep
 
 port = 1
-address = 0x77 
+address = 0x77
 bus = smbus2.SMBus(port)
 
 bme280.load_calibration_params(bus,address)
