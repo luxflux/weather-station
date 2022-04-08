@@ -4,12 +4,14 @@ import time
 import glob
 import bme280
 import smbus2
-from gpiozero import Button
+from gpiozero import Button, MCP3008
+
 
 ONE_KM_IN_CM = 1.0 * 100 * 1000
 ONE_HOUR_IN_SECS = 1.0 * 60 * 60
 
-MAIN_MEASURE_INTERVAL = 5 * 60
+#MAIN_MEASURE_INTERVAL = 5 * 60
+MAIN_MEASURE_INTERVAL = 1 * 15
 
 
 ### Wind Speed
@@ -59,7 +61,8 @@ def wind_speed_calculate_speed(time_sec):
 
     return km_per_hour * 1.18
 
-Button(5).when_pressed = wind_speed_spin
+wind_speed_sensor = Button(5)
+wind_speed_sensor.when_pressed = wind_speed_spin
 
 
 ### Wind Direction
@@ -142,7 +145,8 @@ def rainfall():
     global RAINFALL_BUCKET_SIZE
     return rainfall_tip_count * RAINFALL_BUCKET_SIZE
 
-Button(6).when_pressed = rainfall_bucket_tipped
+rainfall_sensor = Button(6)
+rainfall_sensor.when_pressed = rainfall_bucket_tipped
 
 
 ### Humidity, Air Pressure
@@ -200,21 +204,22 @@ while True:
         wind_speed_count_reset()
 
         while time.time() - wind_start_time <= WIND_MEASURE_INTERVAL:
+            time.sleep(.2)
             wind_direction_measure()
 
-        wind_speed_measure(WIND_MEASURE_INTERVAL)
+        wind_speed_measure()
 
     humidity, pressure, ambient_temperature = hap_measure()
     ground_temperature = gt_measure()
 
     print("Speed: ", wind_speed_mean(), "km/h")
     print("Gust: ", wind_speed_gust(), "km/h")
-    print("Direction: ", wind_direction(), "km/h")
+    print("Direction: ", wind_direction(), "°")
     print("Rainfall: ", rainfall(), "mm")
     print("Humidity: ", humidity, '%')
     print("Pressure: ", pressure)
-    print("Ambient Temperature: ", ambient_temperature, '℃')
-    print("Ground Temperature: ", ground_temperature, '℃')
+    print("Ambient Temperature: ", ambient_temperature, 'C')
+    print("Ground Temperature: ", ground_temperature, 'C')
 
     wind_speed_count_reset()
     wind_speed_speeds_reset()
